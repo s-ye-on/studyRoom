@@ -16,6 +16,7 @@ import me.studyroom.global.exception.StudyRoomException;
 import me.studyroom.global.service.CommonService;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,15 +27,21 @@ public class ReservationService {
 	private final ReservationRepository reservationRepository;
 	private final StudyRoomRepository studyRoomRepository;
 	private final CommonService commonService;
+	private final Clock clock;
 
 	// 지금 만드려고 하는게 현재 시간보다 과거에 시작 시간을 입력값으로 주는걸 막아야함
 	// start.isBefore(LocalDateTime.now()) 이렇게 해도 논리적으론 어긋나진 않음
 	//
 
 	private void timeValidator(LocalDateTime start, LocalDateTime end) {
-		if (!start.isBefore(end) || start.isBefore(LocalDateTime.now())) {
+		LocalDateTime now = LocalDateTime.now(clock);
+
+		if (!start.isBefore(end)) {
 			throw new ReservationException(ExceptionCode.INVALID_TIME_RANGE);
 		}
+
+		if (!start.isAfter(now)) {
+			throw new ReservationException(ExceptionCode.INVALID_TIME_RANGE);}
 	}
 
 	// 예약
@@ -100,6 +107,7 @@ public class ReservationService {
 
 	// 예약 수정
 	public ReservationResponse.Update update(Long reservationId, ReservationRequest.Update request, Long userId) {
+		// 현재 userId와 예약 id를 둘 다 만족해야 예약에 접근가능하게 함으로서 보안사고 방지
 		Reservation reservation = reservationRepository.findByIdAndUserId(reservationId, userId)
 			.orElseThrow(() -> new ReservationException(ExceptionCode.NOT_FOUND_RESERVATION));
 

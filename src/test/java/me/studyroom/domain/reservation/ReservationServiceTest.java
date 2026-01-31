@@ -12,10 +12,19 @@ import me.studyroom.global.exception.ReservationException;
 import me.studyroom.global.exception.StudyRoomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +32,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
+// 이 테스트에서만 Clock 고정됨
+// 운영 코드에는 전혀 영향 없음
+// 테스트에서 LocalDateTime.now()에 의존하지 않고
+// 시간을 주입 가능한 의존성으로 다루게 됐다
+// 테스트에서의 현재 시간은 현실의 현재가 아니라 비즈니스 규칙을 검증하기 위한 기준 시점
 public class ReservationServiceTest {
 	@Autowired
 	private ReservationService reservationService;
@@ -36,15 +50,27 @@ public class ReservationServiceTest {
 	@Autowired
 	private StudyRoomRepository studyRoomRepository;
 
+	@MockitoBean // 기존 TimeConfig의 Clock을 교체
+	private Clock clock;
+
 	private Long studyRoomId;
 	private Long user1Id;
 	private Long user2Id;
+
+	private LocalDateTime BASE_TIME;
 
 	@BeforeEach
 	void setUp() {
 		reservationRepository.deleteAll();
 		studyRoomRepository.deleteAll();
 		userRepository.deleteAll();
+
+		Instant fixedInstant = Instant.parse("2026-10-01T00:00:00Z");
+
+		Mockito.when(clock.instant()).thenReturn(fixedInstant);
+		Mockito.when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
+		BASE_TIME = LocalDateTime.now(clock);
 
 		StudyRoom studyRoom = new StudyRoom("A룸", true, "테스트룸");
 		studyRoomRepository.save(studyRoom);
@@ -62,14 +88,14 @@ public class ReservationServiceTest {
 		//given
 		ReservationRequest.Create request1 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(2)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(2)
 		);
 
 		ReservationRequest.Create request2 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(2),
-			LocalDateTime.now().plusHours(3)
+			BASE_TIME.plusHours(2),
+			BASE_TIME.plusHours(3)
 		);
 
 		//when
@@ -85,14 +111,14 @@ public class ReservationServiceTest {
 		//given
 		ReservationRequest.Create request1 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(2),
-			LocalDateTime.now().plusHours(3)
+			BASE_TIME.plusHours(2),
+			BASE_TIME.plusHours(3)
 		);
 
 		ReservationRequest.Create request2 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(3)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(3)
 		);
 
 		//when, then
@@ -110,14 +136,14 @@ public class ReservationServiceTest {
 		//given
 		ReservationRequest.Create request1 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(2)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(2)
 		);
 
 		ReservationRequest.Create request2 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(2)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(2)
 		);
 
 		String user1Password = "1234";
@@ -162,8 +188,8 @@ public class ReservationServiceTest {
 		//given
 		ReservationRequest.Create request = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.of(2026, 1, 10, 10, 0),
-			LocalDateTime.of(2026, 1, 10, 10, 0)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(1)
 		);
 
 		// when, then
@@ -177,8 +203,8 @@ public class ReservationServiceTest {
 		//given
 		ReservationRequest.Create request = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.of(2026, 1, 10, 13, 0),
-			LocalDateTime.of(2026, 1, 10, 10, 0)
+			BASE_TIME.plusHours(3),
+			BASE_TIME.plusHours(1)
 		);
 
 		// when, then
@@ -192,8 +218,8 @@ public class ReservationServiceTest {
 		// given
 		ReservationRequest.Create request = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().minusHours(1),
-			LocalDateTime.now().plusHours(1)
+			BASE_TIME.minusHours(1),
+			BASE_TIME.plusHours(1)
 		);
 		//when
 		assertThatThrownBy(() -> reservationService.reserve(request, user1Id))
@@ -206,8 +232,8 @@ public class ReservationServiceTest {
 		//given
 		ReservationRequest.Create request = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusMinutes(10),
-			LocalDateTime.now().plusHours(1).plusMinutes(10)
+			BASE_TIME.plusMinutes(10),
+			BASE_TIME.plusHours(1).plusMinutes(10)
 		);
 
 		// when
@@ -228,8 +254,8 @@ public class ReservationServiceTest {
 			disAvailableId,
 			// 테스트에서 날짜 하드 코딩은 위험하다
 			// 날짜 하드 코딩하면 시간 제약에 의해 나중에 테스트 돌렸을 때 테스트가 깨진다
-			LocalDateTime.now().plusHours(2),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(2),
+			BASE_TIME.plusHours(5)
 		);
 
 		// when, then
@@ -243,15 +269,15 @@ public class ReservationServiceTest {
 		// given
 		ReservationRequest.Create request1 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 		reservationService.reserve(request1, user1Id);
 
 		ReservationRequest.Create request2 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(5),
-			LocalDateTime.now().plusHours(6)
+			BASE_TIME.plusHours(5),
+			BASE_TIME.plusHours(6)
 		);
 		reservationService.reserve(request2, user1Id);
 
@@ -270,16 +296,16 @@ public class ReservationServiceTest {
 		// given
 		ReservationRequest.Create request1 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 		reservationService.reserve(request1, user1Id);
 
 		ReservationRequest.Update updateRequest = new ReservationRequest.Update(
 			"1234",
 			studyRoomId,
-			LocalDateTime.now().plusHours(2),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(2),
+			BASE_TIME.plusHours(5)
 		);
 
 		Long reservationId = reservationRepository.findAll().get(0).getId();
@@ -303,12 +329,12 @@ public class ReservationServiceTest {
 	}
 
 	@Test
-	void 예약_중복으로_예약_수정_실패() {
+	void 예약_경계로_예약_수정_성공() {
 		// given
 		ReservationRequest.Create request1 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 		reservationService.reserve(request1, user1Id);
 
@@ -316,22 +342,26 @@ public class ReservationServiceTest {
 
 		ReservationRequest.Create request2 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(5),
-			LocalDateTime.now().plusHours(6)
+			BASE_TIME.plusHours(5),
+			BASE_TIME.plusHours(6)
 		);
 		reservationService.reserve(request2, user1Id);
 
 		ReservationRequest.Update updateRequest = new ReservationRequest.Update(
 			"1234",
 			studyRoomId,
-			LocalDateTime.now().plusHours(3),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(3),
+			BASE_TIME.plusHours(5)
 		);
 
-		// when, then
-		assertThatThrownBy(() -> reservationService.update(reservationId, updateRequest, user1Id))
-			.isInstanceOf(ReservationException.class)
-			.hasMessage(ExceptionCode.SCHEDULE_CONFLICT.getMessage());
+		// when
+		reservationService.update(reservationId, updateRequest, user1Id);
+
+		// then
+		Reservation updated = reservationRepository.findById(reservationId).orElseThrow();
+
+		assertThat(updated.getStartAt()).isEqualTo(BASE_TIME.plusHours(3));
+		assertThat(updated.getEndAt()).isEqualTo(BASE_TIME.plusHours(5));
 	}
 
 	@Test
@@ -343,8 +373,8 @@ public class ReservationServiceTest {
 
 		ReservationRequest.Create request1 = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 		reservationService.reserve(request1, user1Id);
 		Long reservationId = reservationRepository.findAll().get(0).getId();
@@ -352,8 +382,8 @@ public class ReservationServiceTest {
 		ReservationRequest.Update updateRequest = new ReservationRequest.Update(
 			"1234",
 			disAvailableRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 
 		// when, then
@@ -376,8 +406,8 @@ public class ReservationServiceTest {
 		// given
 		ReservationRequest.Create request = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 		reservationService.reserve(request, user1Id);
 		Long reservationId = reservationRepository
@@ -388,8 +418,8 @@ public class ReservationServiceTest {
 		ReservationRequest.Update updateRequest = new ReservationRequest.Update(
 			"1234",
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 
 		assertThatThrownBy(() -> reservationService.update(reservationId, updateRequest, user2Id))
@@ -402,8 +432,8 @@ public class ReservationServiceTest {
 		// given
 		ReservationRequest.Create request = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 		reservationService.reserve(request, user1Id);
 
@@ -429,8 +459,8 @@ public class ReservationServiceTest {
 		// given
 		ReservationRequest.Create request = new ReservationRequest.Create(
 			studyRoomId,
-			LocalDateTime.now().plusHours(1),
-			LocalDateTime.now().plusHours(5)
+			BASE_TIME.plusHours(1),
+			BASE_TIME.plusHours(5)
 		);
 		reservationService.reserve(request, user1Id);
 

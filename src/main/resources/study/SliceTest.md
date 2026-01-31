@@ -188,3 +188,49 @@ mockMvc.perform(post("/reservations")
 )
 ```
 ### 이게 의미하는 것  
+"이 요청은 이미 인증된 사용자 요청이다"  
+
+그래서 컨트롤러에서 
+```java
+@AuthenticationPrincipal CustomUserDetails user
+```
+가 **정상적으로 주입됨**
+
+---
+## 🔟Service는 왜 @MockitoBean인가? 
+```java
+@MockitoBean
+private ReservationService reservationService;
+```
+- Controller 테스트에서 Service 로직은 관심이 없다 
+- Controller가 **Service를 어떻게 호출하는지만** 중요 
+
+그래서 
+```java
+given(reservationService.reserve(any(), anyLong()))
+    .willReturn(response);
+```
+또는 
+```java
+doThrow(new ReservationException(...))
+```
+---
+## 1️⃣1️⃣ 검증한 테스트 시나리오 
+### ✅성공 케이스 
+- 201 CREATED
+- 응답 JSON 구조 확인
+
+### ✅비즈니스 예외
+- 예약 중복 -> 409 CONFLICT
+- ErrorResponse 계약 검증 
+
+### ✅Validation 오류 
+- 요청 값 누락 -> 400 BAD REQUEST 
+- fieldErrors 내려오는지 검증 
+
+---
+## 최종 한 줄 요약 
+이 테스트는  
+"예약 컨트롤러가 인증된 사용자 요청을 받아  
+정상 / 예외 상황에서 HTTP 계약을 지키는지"를 검증하는  
+Security 포함 Slice Test이다  
