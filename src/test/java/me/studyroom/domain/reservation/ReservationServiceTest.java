@@ -472,4 +472,16 @@ public class ReservationServiceTest {
 			.isInstanceOf(ReservationException.class)
 			.hasMessage(ExceptionCode.NOT_FOUND_RESERVATION.getMessage());
 	}
+
+	@Test
+	void 시작시간이_운영시간_이전_예약_실패() {
+	}
+
+	@Test
+	void 종료시간이_운영_시간_이후_예약_실패() {
+	}
+
+	@Test
+	void 운영_시간_예약_성공() {
+	}
 }

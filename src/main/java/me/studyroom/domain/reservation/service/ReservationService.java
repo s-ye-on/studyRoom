@@ -6,6 +6,7 @@ import me.studyroom.domain.reservation.Reservation;
 import me.studyroom.domain.reservation.ReservationRepository;
 import me.studyroom.domain.reservation.ReservationStatus;
 import me.studyroom.domain.reservation.dto.ReservationResponse;
+import me.studyroom.domain.reservation.policy.ReservationPolicy;
 import me.studyroom.domain.studyRoom.StudyRoom;
 import me.studyroom.domain.studyRoom.StudyRoomRepository;
 import me.studyroom.domain.user.User;
@@ -28,6 +29,7 @@ public class ReservationService {
 	private final StudyRoomRepository studyRoomRepository;
 	private final CommonService commonService;
 	private final Clock clock;
+	private final ReservationPolicy reservationPolicy;
 
 	// 지금 만드려고 하는게 현재 시간보다 과거에 시작 시간을 입력값으로 주는걸 막아야함
 	// start.isBefore(LocalDateTime.now()) 이렇게 해도 논리적으론 어긋나진 않음
@@ -59,6 +61,13 @@ public class ReservationService {
 			.orElseThrow(() -> new StudyRoomException(ExceptionCode.NOT_FOUND_STUDYROOM));
 
 		studyRoom.ensureAvailable();
+
+		// 정책 검증
+		reservationPolicy.validate(
+			request.startAt(),
+			request.endAt(),
+			studyRoom
+		);
 
 		boolean existReservation = reservationRepository.existsReservedOverlappingReservation(
 			studyRoom,

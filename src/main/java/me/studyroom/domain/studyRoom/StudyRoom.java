@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import me.studyroom.global.exception.ExceptionCode;
 import me.studyroom.global.exception.StudyRoomException;
 
+import java.time.LocalTime;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,10 +32,29 @@ public class StudyRoom {
 	@Column(nullable = false, length = 100)
 	private String description;
 
-	public StudyRoom(String name, boolean available, String description) {
+	@Column (nullable = false)
+	private LocalTime openTime;
+
+	@Column (nullable = false)
+	private LocalTime closeTime;
+
+	public StudyRoom(String name, boolean available, String description, LocalTime openTime, LocalTime closeTime) {
+		validateOperatingTime(openTime, closeTime);
+
 		this.name = name;
 		this.available = available;
 		this.description = description;
+		this.openTime = openTime;
+		this.closeTime = closeTime;
+	}
+
+	// 기본 규칙은 엔티티에서 지키도록 함 (스터디룸 자체의 불변식)
+	// 엔티티 검증은 데이터 무결성
+	// Policy는 예약 가능 여부
+	private void validateOperatingTime(LocalTime openTime, LocalTime closeTime) {
+		if(!openTime.isBefore(closeTime)) {
+			throw new StudyRoomException(ExceptionCode.INVALID_OPERATING_TIME);
+		}
 	}
 
 	// 상태 전이 규칙이 나중에 생길 수 있기에 if문으로 확인 후 변경으로 만들었다
@@ -57,5 +78,10 @@ public class StudyRoom {
 			return;
 		}
 		throw new StudyRoomException(ExceptionCode.STUDYROOM_NOT_AVAILABLE);
+	}
+
+	// studyRoom은 정보 제공만
+	public boolean isWithinOperatingTime(LocalTime start, LocalTime end) {
+		return !start.isBefore(openTime) && !start.isAfter(end);
 	}
 }

@@ -12,6 +12,8 @@ public enum ExceptionCode {
 	INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다"),
 	INVALID_TIME_RANGE(HttpStatus.BAD_REQUEST, "유효하지 않은 시간 요청입니다"),
 	INVALID_EMAIL(HttpStatus.BAD_REQUEST, "이메일이 일치하지 않습니다"),
+	OUT_OF_OPERATING_TIME(HttpStatus.BAD_REQUEST, "운영 시간이 아닙니다"),
+	INVALID_OPERATING_TIME(HttpStatus.BAD_REQUEST, "운영 시간 입력이 바르지 않습니다"),
 
 
 	// 404
