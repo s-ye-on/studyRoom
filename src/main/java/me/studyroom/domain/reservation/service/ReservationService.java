@@ -41,7 +41,8 @@ public class ReservationService {
 		}
 
 		if (!start.isAfter(now)) {
-			throw new ReservationException(ExceptionCode.INVALID_TIME_RANGE);}
+			throw new ReservationException(ExceptionCode.INVALID_TIME_RANGE);
+		}
 	}
 
 	// 예약
@@ -106,6 +107,13 @@ public class ReservationService {
 	}
 
 	// 예약 수정
+	// 현재 이 업데이트는 방의 가용성에 영향을 끼치는 업데이트이다
+
+	///  todo : 이것도 비관적 lock studyRoom에 걸어서 시간대를 보장하는게 맞아보인다
+	/// 해결. 일단 update 하나만 둘 생각이니까 비관적 락을 걸어서 동시성 문제 해결
+	/// 예약의 경쟁 자원은 studyRoom이기에 update에도 방 단위 동시성 제어 적용
+	/// 예약자 전화번호 변경, 메모 변경 처럼 방 상태와 무관한 것은 그냥 업데이트 해도 좋다 (그래도 낙관적 락은 걸어주는게 좋다)
+	/// update를 무엇을 하느냐에 따라 메서드를 분리해보자
 	public ReservationResponse.Update update(Long reservationId, ReservationRequest.Update request, Long userId) {
 		// 현재 userId와 예약 id를 둘 다 만족해야 예약에 접근가능하게 함으로서 보안사고 방지
 		Reservation reservation = reservationRepository.findByIdAndUserId(reservationId, userId)
@@ -122,7 +130,7 @@ public class ReservationService {
 		// 동시성 문제 발생 가능
 		// 코드 복잡도 증가
 
-		StudyRoom studyRoom = commonService.getStudyRoomById(request.StudyRoomId());
+		StudyRoom studyRoom = commonService.getStudyRoomForUpdate(request.StudyRoomId());
 		studyRoom.ensureAvailable();
 
 		// 다 좋은데 여기서 걸리는게 있음
@@ -150,9 +158,7 @@ public class ReservationService {
 			throw new ReservationException(ExceptionCode.SCHEDULE_CONFLICT);
 		}
 
-		reservation.updateStudyRoom(studyRoom);
-		reservation.updateStartAt(request.startAt());
-		reservation.updateEndAt(request.endAt());
+		reservation.update(studyRoom, request.startAt(), request.endAt());
 
 		reservationRepository.save(reservation);
 

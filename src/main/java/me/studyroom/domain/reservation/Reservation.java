@@ -52,6 +52,12 @@ public class Reservation {
 		this.status = ReservationStatus.RESERVED;
 	}
 
+	public void update(StudyRoom studyRoom, LocalDateTime startAt, LocalDateTime endAt) {
+		this.studyRoom = studyRoom;
+		this.startAt = startAt;
+		this.endAt = endAt;
+	}
+
 	public void updateStudyRoom(StudyRoom studyRoom) {
 		this.studyRoom = studyRoom;
 	}

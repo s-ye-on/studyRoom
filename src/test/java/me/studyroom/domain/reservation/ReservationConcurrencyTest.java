@@ -33,6 +33,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 // 동시성 + DB 결과 검증 테스트에서는 @Transactional 사용 금지
 // 락이 실제로 DB에 반영됐는지 보는 테스트도 사용 금지
+/*
+@Transactional을 테스트에 붙이면
+테스트 스레드에만 트랜잭션이 생기고
+멀티스레드에서 실행되는 서비스 로직은
+각각 별도의 트랜잭션으로 커밋된다.
+하지만 테스트 스레드는
+자기 트랜잭션 스냅샷만 보기 때문에
+다른 스레드의 커밋 결과를 관찰할 수 없다.
+ */
 public class ReservationConcurrencyTest {
 
 	@Autowired
