@@ -62,7 +62,7 @@ public class ReservationService {
 
 		studyRoom.ensureAvailable();
 
-		// 정책 검증
+		// 정책 검증 (운영 시간에 맞게 예약 요청을 했는지)
 		reservationPolicy.validate(
 			request.startAt(),
 			request.endAt(),
