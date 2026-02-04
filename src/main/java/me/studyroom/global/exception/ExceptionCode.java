@@ -14,6 +14,7 @@ public enum ExceptionCode {
 	INVALID_EMAIL(HttpStatus.BAD_REQUEST, "이메일이 일치하지 않습니다"),
 	OUT_OF_OPERATING_TIME(HttpStatus.BAD_REQUEST, "운영 시간이 아닙니다"),
 	INVALID_OPERATING_TIME(HttpStatus.BAD_REQUEST, "운영 시간 입력이 바르지 않습니다"),
+	TOO_SHORT_RESERVATION(HttpStatus.CONFLICT, "예약 시간이 너무 짧습니다"),
 
 
 	// 404

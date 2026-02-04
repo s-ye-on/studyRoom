@@ -69,6 +69,15 @@ public class ReservationService {
 			studyRoom
 		);
 
+		// 여러 정책 검증시 사용
+//		for (ReservationPolicy policy : policies) {
+//			policy.validate(
+//				request.startAt(),
+//				request.endAt(),
+//				studyRoom
+//			);
+//		}
+
 		boolean existReservation = reservationRepository.existsReservedOverlappingReservation(
 			studyRoom,
 			ReservationStatus.RESERVED,

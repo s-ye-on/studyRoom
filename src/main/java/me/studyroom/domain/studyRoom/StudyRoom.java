@@ -48,15 +48,6 @@ public class StudyRoom {
 		this.closeTime = closeTime;
 	}
 
-	// 기본 규칙은 엔티티에서 지키도록 함 (스터디룸 자체의 불변식)
-	// 엔티티 검증은 데이터 무결성
-	// Policy는 예약 가능 여부
-	private void validateOperatingTime(LocalTime openTime, LocalTime closeTime) {
-		if(!openTime.isBefore(closeTime)) {
-			throw new StudyRoomException(ExceptionCode.INVALID_OPERATING_TIME);
-		}
-	}
-
 	// 상태 전이 규칙이 나중에 생길 수 있기에 if문으로 확인 후 변경으로 만들었다
 	// 의미 없는 상태 변경 방지 (로그/ 이벤트/ 감사 기록이 꼬일 수 있음)
 	public void enable() {
@@ -81,7 +72,17 @@ public class StudyRoom {
 	}
 
 	// studyRoom은 정보 제공만
-	public boolean isWithinOperatingTime(LocalTime start, LocalTime end) {
-		return !start.isBefore(openTime) && !start.isAfter(end);
+	// 이 부분은 생각해보니 객체에게 책임을 주는 것이 아니라 묻는 것임
+	// TDA
+//	public boolean isWithinOperatingTime(LocalTime start, LocalTime end) {
+//		return !start.isBefore(openTime) && !start.isAfter(end);
+//	}
+
+	public void validateOperatingTime(LocalTime start, LocalTime end) {
+		if(start.isBefore(openTime) || end.isAfter(closeTime)) {
+			throw new StudyRoomException(
+				ExceptionCode.OUT_OF_OPERATING_TIME
+			);
+		}
 	}
 }
