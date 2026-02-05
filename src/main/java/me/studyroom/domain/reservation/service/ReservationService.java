@@ -6,6 +6,7 @@ import me.studyroom.domain.reservation.Reservation;
 import me.studyroom.domain.reservation.ReservationRepository;
 import me.studyroom.domain.reservation.ReservationStatus;
 import me.studyroom.domain.reservation.dto.ReservationResponse;
+import me.studyroom.domain.reservation.policy.PolicyPhase;
 import me.studyroom.domain.reservation.policy.ReservationPolicy;
 import me.studyroom.domain.studyRoom.StudyRoom;
 import me.studyroom.domain.studyRoom.StudyRoomRepository;
@@ -48,6 +49,20 @@ public class ReservationService {
 		}
 	}
 
+	// 정책 검증 헬퍼
+	private void validatePolicies(
+		PolicyPhase phase,
+		LocalDateTime start,
+		LocalDateTime end,
+		StudyRoom room,
+		User user,
+		Reservation reservation
+	) {
+		policies.stream()
+			.filter(p -> p.phase() == phase)
+			.forEach(p -> p.validate(start, end, room, user, reservation));
+	}
+
 	// 예약
 	public ReservationResponse.Create reserve(ReservationRequest.Create request, Long userId) {
 
@@ -72,18 +87,28 @@ public class ReservationService {
 //		);
 
 		// 여러 정책 검증시 사용
-		for (ReservationPolicy policy : policies) {
-			policy.validate(
-				request.startAt(),
-				request.endAt(),
-				studyRoom,
-				user
-			);
-		}
+//		for (ReservationPolicy policy : policies) {
+//			policy.validate(
+//				request.startAt(),
+//				request.endAt(),
+//				studyRoom,
+//				user
+//			);
+//		}
+
+		// RESERVE 단계 정책만
+		validatePolicies(
+			PolicyPhase.RESERVE,
+			request.startAt(),
+			request.endAt(),
+			studyRoom,
+			user,
+			null
+		);
 
 		boolean existReservation = reservationRepository.existsReservedOverlappingReservation(
 			studyRoom,
-			ReservationStatus.RESERVED,
+			ReservationStatus.CONFIRMED,
 			request.startAt(),
 			request.endAt()
 		);
@@ -92,7 +117,8 @@ public class ReservationService {
 			throw new ReservationException(ExceptionCode.SCHEDULE_CONFLICT);
 		}
 
-		Reservation reservation = new Reservation(user,
+		Reservation reservation = new Reservation(
+			user,
 			studyRoom,
 			request.startAt(),
 			request.endAt());
@@ -107,7 +133,42 @@ public class ReservationService {
 		);
 	}
 
-	public void confirmPayment() {
+	public void confirmPayment(Long reservationId, Long userId) {
+		Reservation reservation =
+			reservationRepository.findByIdAndUserId(reservationId, userId)
+				.orElseThrow(()-> new ReservationException(ExceptionCode.NOT_FOUND_RESERVATION));
+
+		StudyRoom room = commonService.getStudyRoomForUpdate(
+			reservation.getStudyRoom().getId()
+		);
+
+		User user = commonService.getUserById(userId);
+
+		// 결제 단계 정책
+		validatePolicies(
+			PolicyPhase.PAYMENT_CONFIRM,
+			reservation.getStartAt(),
+			reservation.getEndAt(),
+			room,
+			user,
+			reservation
+		);
+
+		// 최신 기준으로 중복 재검증
+		boolean conflict =
+			reservationRepository.existsReservedOverlappingReservationExceptSelf(
+				room,
+				ReservationStatus.CONFIRMED,
+				reservation.getStartAt(),
+				reservation.getEndAt(),
+				reservationId
+			);
+
+		if (conflict) {
+			throw new ReservationException(ExceptionCode.SCHEDULE_CONFLICT);
+		}
+
+		reservation.confirm();
 	}
 
 	// 예약 확인

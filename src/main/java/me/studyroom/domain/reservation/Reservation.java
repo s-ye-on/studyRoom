@@ -73,10 +73,16 @@ public class Reservation {
 	}
 
 	public void confirm() {
-		if(status != ReservationStatus.WAIT_PAYMENT) {
+		if (status != ReservationStatus.WAIT_PAYMENT) {
 			throw new ReservationException(ExceptionCode.INVALID_STATUS);
 		}
 		this.status = ReservationStatus.CONFIRMED;
+	}
+
+	public void expire() {
+		if (this.status == ReservationStatus.WAIT_PAYMENT) {
+			this.status = ReservationStatus.EXPIRED;
+		}
 	}
 
 	public void canceled() {
