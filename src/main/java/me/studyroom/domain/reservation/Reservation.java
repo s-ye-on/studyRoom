@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.studyroom.domain.studyRoom.StudyRoom;
 import me.studyroom.domain.user.User;
+import me.studyroom.global.exception.ExceptionCode;
+import me.studyroom.global.exception.ReservationException;
 
 import java.time.LocalDateTime;
 
@@ -49,7 +51,7 @@ public class Reservation {
 		this.studyRoom = studyRoom;
 		this.startAt = startAt;
 		this.endAt = endAt;
-		this.status = ReservationStatus.RESERVED;
+		this.status = ReservationStatus.WAIT_PAYMENT;
 	}
 
 	public void update(StudyRoom studyRoom, LocalDateTime startAt, LocalDateTime endAt) {
@@ -70,7 +72,17 @@ public class Reservation {
 		this.endAt = endAt;
 	}
 
+	public void confirm() {
+		if(status != ReservationStatus.WAIT_PAYMENT) {
+			throw new ReservationException(ExceptionCode.INVALID_STATUS);
+		}
+		this.status = ReservationStatus.CONFIRMED;
+	}
+
 	public void canceled() {
+		if (status == ReservationStatus.EXPIRED) {
+			throw new ReservationException(ExceptionCode.ALREADY_EXPIRED);
+		}
 		this.status = ReservationStatus.CANCELED;
 	}
 }

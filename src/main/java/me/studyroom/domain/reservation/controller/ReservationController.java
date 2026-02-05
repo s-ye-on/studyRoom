@@ -25,6 +25,12 @@ public class ReservationController {
 		return reservationService.reserve(createRequest, user.getId());
 	}
 
+	@PostMapping("/{id}/confirm")
+	public void confirm(@PathVariable Long id) {
+
+	}
+
+
 	@PutMapping("/{reservationId}")
 	public ReservationResponse.Update updateReservation(@PathVariable Long reservationId,
 																											@Valid @RequestBody ReservationRequest.Update updateRequest,

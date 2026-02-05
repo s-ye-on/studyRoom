@@ -1,5 +1,6 @@
 package me.studyroom.domain.reservation.policy;
 
+import me.studyroom.domain.reservation.Reservation;
 import me.studyroom.domain.studyRoom.StudyRoom;
 import me.studyroom.domain.user.User;
 import me.studyroom.global.exception.ExceptionCode;
@@ -15,7 +16,17 @@ public class MinimumDurationPolicy implements ReservationPolicy {
 	private static final Duration minimumDuration = Duration.ofHours(1);
 
 	@Override
-	public void validate(LocalDateTime start, LocalDateTime end, StudyRoom studyRoom, User user) {
+	public PolicyPhase phase() {
+		return PolicyPhase.RESERVE;
+	}
+
+	@Override
+	public void validate(LocalDateTime start,
+											 LocalDateTime end,
+											 StudyRoom studyRoom,
+											 User user,
+											 Reservation reservation) {
+
 		if (Duration.between(start, end).compareTo(minimumDuration) < 0) {
 			throw new ReservationException(ExceptionCode.TOO_SHORT_RESERVATION);
 		}

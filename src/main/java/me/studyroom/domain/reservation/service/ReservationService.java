@@ -71,7 +71,7 @@ public class ReservationService {
 //			user
 //		);
 
-		 // 여러 정책 검증시 사용
+		// 여러 정책 검증시 사용
 		for (ReservationPolicy policy : policies) {
 			policy.validate(
 				request.startAt(),
@@ -105,6 +105,9 @@ public class ReservationService {
 			request.startAt(),
 			request.endAt()
 		);
+	}
+
+	public void confirmPayment() {
 	}
 
 	// 예약 확인

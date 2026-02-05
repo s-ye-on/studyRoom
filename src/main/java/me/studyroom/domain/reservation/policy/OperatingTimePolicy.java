@@ -1,6 +1,7 @@
 package me.studyroom.domain.reservation.policy;
 
 import lombok.RequiredArgsConstructor;
+import me.studyroom.domain.reservation.Reservation;
 import me.studyroom.domain.studyRoom.StudyRoom;
 import me.studyroom.domain.user.User;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,16 @@ import java.time.LocalTime;
 public class OperatingTimePolicy implements ReservationPolicy {
 
 	@Override
-	public void validate(LocalDateTime start, LocalDateTime end, StudyRoom studyRoom, User user) {
+	public PolicyPhase phase() {
+		return PolicyPhase.RESERVE;
+	}
+
+	@Override
+	public void validate(LocalDateTime start,
+											 LocalDateTime end,
+											 StudyRoom studyRoom,
+											 User user,
+											 Reservation reservation) {
 		LocalTime startTime = start.toLocalTime();
 		LocalTime endTime = end.toLocalTime();
 
