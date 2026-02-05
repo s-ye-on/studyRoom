@@ -9,6 +9,7 @@ import me.studyroom.domain.user.User;
 import me.studyroom.global.exception.ExceptionCode;
 import me.studyroom.global.exception.ReservationException;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Entity

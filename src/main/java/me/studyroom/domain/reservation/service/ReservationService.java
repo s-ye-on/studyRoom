@@ -73,8 +73,7 @@ public class ReservationService {
 		//StudyRoom studyRoom = commonService.getStudyRoomById(request.studyRoomId());
 
 		// 락 걸고 조회
-		StudyRoom studyRoom = studyRoomRepository.findByIdForUpdate(request.studyRoomId())
-			.orElseThrow(() -> new StudyRoomException(ExceptionCode.NOT_FOUND_STUDYROOM));
+		StudyRoom studyRoom = commonService.getStudyRoomForUpdate(request.studyRoomId());
 
 		studyRoom.ensureAvailable();
 
@@ -136,7 +135,7 @@ public class ReservationService {
 	public void confirmPayment(Long reservationId, Long userId) {
 		Reservation reservation =
 			reservationRepository.findByIdAndUserId(reservationId, userId)
-				.orElseThrow(()-> new ReservationException(ExceptionCode.NOT_FOUND_RESERVATION));
+				.orElseThrow(() -> new ReservationException(ExceptionCode.NOT_FOUND_RESERVATION));
 
 		StudyRoom room = commonService.getStudyRoomForUpdate(
 			reservation.getStudyRoom().getId()
@@ -173,7 +172,7 @@ public class ReservationService {
 
 	// 예약 확인
 	public List<ReservationResponse.Read> reservationConfirm(Long userId) {
-		return reservationRepository.findByUserIdAndStatus(userId, ReservationStatus.RESERVED)
+		return reservationRepository.findByUserIdAndStatus(userId, ReservationStatus.CONFIRMED)
 			.stream()
 			.map(this::mapToRead)
 			.toList();
@@ -233,7 +232,7 @@ public class ReservationService {
 		// 정석은 "자기 자신 예약 제외"
 		boolean checkExist = reservationRepository.existsReservedOverlappingReservationExceptSelf(
 			studyRoom,
-			ReservationStatus.RESERVED,
+			ReservationStatus.CONFIRMED,
 			request.startAt(),
 			request.endAt(),
 			reservationId
