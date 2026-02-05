@@ -14,7 +14,6 @@ import me.studyroom.domain.user.User;
 import me.studyroom.global.dto.request.ReservationRequest;
 import me.studyroom.global.exception.ExceptionCode;
 import me.studyroom.global.exception.ReservationException;
-import me.studyroom.global.exception.StudyRoomException;
 import me.studyroom.global.service.CommonService;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +26,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReservationService {
 	private final ReservationRepository reservationRepository;
-	private final StudyRoomRepository studyRoomRepository;
 	private final CommonService commonService;
 	private final Clock clock;
 	// private final ReservationPolicy reservationPolicy;
@@ -120,7 +118,8 @@ public class ReservationService {
 			user,
 			studyRoom,
 			request.startAt(),
-			request.endAt());
+			request.endAt(),
+			clock);
 
 		reservationRepository.save(reservation);
 
@@ -167,7 +166,7 @@ public class ReservationService {
 			throw new ReservationException(ExceptionCode.SCHEDULE_CONFLICT);
 		}
 
-		reservation.confirm();
+		reservation.confirm(clock);
 	}
 
 	// 예약 확인

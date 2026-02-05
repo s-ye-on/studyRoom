@@ -17,6 +17,8 @@ public enum ExceptionCode {
 	TOO_SHORT_RESERVATION(HttpStatus.BAD_REQUEST, "예약 시간이 너무 짧습니다"),
 	INVALID_STATUS(HttpStatus.BAD_REQUEST, "존재하지 않는 상태입니다"),
 	ALREADY_EXPIRED(HttpStatus.BAD_REQUEST, "이미 만료된 예약입니다"),
+	CANNOT_UPDATE_STATUS(HttpStatus.BAD_REQUEST, "상태를 변경할 수 없습니다"),
+	ALREADY_CANCELED(HttpStatus.BAD_REQUEST, "이미 취소된 예약 입니다"),
 
 
 	// 404
@@ -28,7 +30,8 @@ public enum ExceptionCode {
 	STUDYROOM_NOT_AVAILABLE(HttpStatus.METHOD_NOT_ALLOWED, "현재 이용할 수 없는 스터디룸입니다"),
 
 	// 409 conflict 요청은 유효하지만, 현재 상태에서 수행할 수 없음
-	SCHEDULE_CONFLICT(HttpStatus.CONFLICT, "이미 예약되어 있는 시간대 입니다");
+	SCHEDULE_CONFLICT(HttpStatus.CONFLICT, "이미 예약되어 있는 시간대 입니다"),
+	PAYMENT_TIMEOUT(HttpStatus.CONFLICT, "결제 시간이 만료되었습니다");
 
 	private final HttpStatus status;
 	private final String message;

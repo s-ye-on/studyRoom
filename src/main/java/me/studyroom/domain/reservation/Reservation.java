@@ -37,6 +37,9 @@ public class Reservation {
 	@JoinColumn(name = "study_room_id", nullable = false)
 	private StudyRoom studyRoom;
 
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
 	@Column(nullable = false)
 	private LocalDateTime startAt;
 
@@ -47,15 +50,32 @@ public class Reservation {
 	@Column(nullable = false)
 	private ReservationStatus status;
 
-	public Reservation(User user, StudyRoom studyRoom, LocalDateTime startAt, LocalDateTime endAt) {
+	public Reservation(User user, StudyRoom studyRoom, LocalDateTime startAt, LocalDateTime endAt, Clock clock) {
 		this.user = user;
 		this.studyRoom = studyRoom;
 		this.startAt = startAt;
 		this.endAt = endAt;
+		this.createdAt = LocalDateTime.now(clock);
 		this.status = ReservationStatus.WAIT_PAYMENT;
 	}
 
+	private boolean isPaymentExpired(Clock clock) {
+		if (this.status != ReservationStatus.WAIT_PAYMENT) {
+			return false;
+		}
+
+		LocalDateTime now = LocalDateTime.now(clock);
+
+		return createdAt.plusMinutes(10).isBefore(now);
+	}
+
 	public void update(StudyRoom studyRoom, LocalDateTime startAt, LocalDateTime endAt) {
+
+		// 업데이트는 confirmed만 수정하게 만들었다
+		if (this.status != ReservationStatus.CONFIRMED) {
+			throw new ReservationException(ExceptionCode.CANNOT_UPDATE_STATUS);
+		}
+
 		this.studyRoom = studyRoom;
 		this.startAt = startAt;
 		this.endAt = endAt;
@@ -73,15 +93,19 @@ public class Reservation {
 		this.endAt = endAt;
 	}
 
-	public void confirm() {
+	public void confirm(Clock clock) {
 		if (status != ReservationStatus.WAIT_PAYMENT) {
 			throw new ReservationException(ExceptionCode.INVALID_STATUS);
 		}
+		if (isPaymentExpired(clock)) {
+			throw new ReservationException(ExceptionCode.PAYMENT_TIMEOUT);
+		}
+
 		this.status = ReservationStatus.CONFIRMED;
 	}
 
-	public void expire() {
-		if (this.status == ReservationStatus.WAIT_PAYMENT) {
+	public void expire(Clock clock) {
+		if (isPaymentExpired(clock)) {
 			this.status = ReservationStatus.EXPIRED;
 		}
 	}
@@ -90,6 +114,10 @@ public class Reservation {
 		if (status == ReservationStatus.EXPIRED) {
 			throw new ReservationException(ExceptionCode.ALREADY_EXPIRED);
 		}
+		if (status == ReservationStatus.CANCELED) {
+			throw new ReservationException(ExceptionCode.ALREADY_CANCELED);
+		}
+
 		this.status = ReservationStatus.CANCELED;
 	}
 }
