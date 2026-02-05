@@ -1,6 +1,5 @@
 package me.studyroom.security;
 
-import lombok.Getter;
 import me.studyroom.domain.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

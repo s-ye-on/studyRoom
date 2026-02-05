@@ -29,7 +29,8 @@ public class ReservationService {
 	private final StudyRoomRepository studyRoomRepository;
 	private final CommonService commonService;
 	private final Clock clock;
-	private final ReservationPolicy reservationPolicy;
+	// private final ReservationPolicy reservationPolicy;
+	private final List<ReservationPolicy> policies;
 
 	// 지금 만드려고 하는게 현재 시간보다 과거에 시작 시간을 입력값으로 주는걸 막아야함
 	// start.isBefore(LocalDateTime.now()) 이렇게 해도 논리적으론 어긋나진 않음
@@ -63,20 +64,22 @@ public class ReservationService {
 		studyRoom.ensureAvailable();
 
 		// 정책 검증 (운영 시간에 맞게 예약 요청을 했는지)
-		reservationPolicy.validate(
-			request.startAt(),
-			request.endAt(),
-			studyRoom
-		);
+//		reservationPolicy.validate(
+//			request.startAt(),
+//			request.endAt(),
+//			studyRoom,
+//			user
+//		);
 
-		// 여러 정책 검증시 사용
-//		for (ReservationPolicy policy : policies) {
-//			policy.validate(
-//				request.startAt(),
-//				request.endAt(),
-//				studyRoom
-//			);
-//		}
+		 // 여러 정책 검증시 사용
+		for (ReservationPolicy policy : policies) {
+			policy.validate(
+				request.startAt(),
+				request.endAt(),
+				studyRoom,
+				user
+			);
+		}
 
 		boolean existReservation = reservationRepository.existsReservedOverlappingReservation(
 			studyRoom,

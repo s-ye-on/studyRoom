@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.studyroom.domain.reservation.dto.ReservationResponse;
 import me.studyroom.domain.reservation.service.ReservationService;
-import me.studyroom.domain.user.User;
 import me.studyroom.global.dto.request.ReservationRequest;
 import me.studyroom.security.CustomUserDetails;
 import org.springframework.http.HttpStatus;

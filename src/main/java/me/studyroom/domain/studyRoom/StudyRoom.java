@@ -32,10 +32,10 @@ public class StudyRoom {
 	@Column(nullable = false, length = 100)
 	private String description;
 
-	@Column (nullable = false)
+	@Column(nullable = false)
 	private LocalTime openTime;
 
-	@Column (nullable = false)
+	@Column(nullable = false)
 	private LocalTime closeTime;
 
 	public StudyRoom(String name, boolean available, String description, LocalTime openTime, LocalTime closeTime) {
@@ -79,7 +79,7 @@ public class StudyRoom {
 //	}
 
 	public void validateOperatingTime(LocalTime start, LocalTime end) {
-		if(start.isBefore(openTime) || end.isAfter(closeTime)) {
+		if (start.isBefore(openTime) || end.isAfter(closeTime)) {
 			throw new StudyRoomException(
 				ExceptionCode.OUT_OF_OPERATING_TIME
 			);
