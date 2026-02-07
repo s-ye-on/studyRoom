@@ -9,7 +9,6 @@ import me.studyroom.domain.reservation.dto.ReservationResponse;
 import me.studyroom.domain.reservation.policy.PolicyPhase;
 import me.studyroom.domain.reservation.policy.ReservationPolicy;
 import me.studyroom.domain.studyRoom.StudyRoom;
-import me.studyroom.domain.studyRoom.StudyRoomRepository;
 import me.studyroom.domain.user.User;
 import me.studyroom.global.dto.request.ReservationRequest;
 import me.studyroom.global.exception.ExceptionCode;
