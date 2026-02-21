@@ -94,6 +94,8 @@ public class Reservation {
 	}
 
 	public void confirm(Clock clock) {
+		// confirm을 아무 상태에서나 호출하면 안됨
+		// 상태 전이 규칙은 엔티티가 가진다
 		if (status != ReservationStatus.WAIT_PAYMENT) {
 			throw new ReservationException(ExceptionCode.INVALID_STATUS);
 		}

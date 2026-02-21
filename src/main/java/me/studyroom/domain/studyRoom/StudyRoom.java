@@ -39,13 +39,24 @@ public class StudyRoom {
 	private LocalTime closeTime;
 
 	public StudyRoom(String name, boolean available, String description, LocalTime openTime, LocalTime closeTime) {
-		validateOperatingTime(openTime, closeTime);
+		validateOperatingHours(openTime, closeTime);
 
 		this.name = name;
 		this.available = available;
 		this.description = description;
 		this.openTime = openTime;
 		this.closeTime = closeTime;
+	}
+
+	// 운영시간 자체 설정이 정상인지 검증 (open < close, null 아님 등)
+	private void validateOperatingHours(LocalTime openTime, LocalTime closeTime) {
+		if (openTime == null || closeTime == null) {
+			throw new StudyRoomException(ExceptionCode.INVALID_OPERATING_TIME);
+		}
+		// 일단 야간 영업은 막아놓는 설계로 가겠음
+		if (!openTime.isBefore(closeTime)) {
+			throw new StudyRoomException(ExceptionCode.INVALID_OPERATING_TIME);
+		}
 	}
 
 	// 상태 전이 규칙이 나중에 생길 수 있기에 if문으로 확인 후 변경으로 만들었다
@@ -78,6 +89,10 @@ public class StudyRoom {
 //		return !start.isBefore(openTime) && !start.isAfter(end);
 //	}
 
+	// 여기는 studyRoom 엔티티라 studyRoom이 생성될 때 운영 시간 자체가 유효한가는 따로 검증하는게 맞다
+	// validateOperatingHours()
+	// 야간 운영(자정 넘어감)은 안하는걸로 일단 만들어보겠다
+	// 예약 요청이 운영 시간 안인지 검증
 	public void validateOperatingTime(LocalTime start, LocalTime end) {
 		if (start.isBefore(openTime) || end.isAfter(closeTime)) {
 			throw new StudyRoomException(
