@@ -45,4 +45,14 @@ void expireReservations()
 - 이후 중복 체크 
 
 ---
-### 정책 문서 정리 
+### 정책 문서 정리
+
+---
+### reserve가 WAIT_PAYMENT를 저장할 때, 중복 체크 기준 재확인 
+- 지금은 CONFIRMED만 점유
+- reserve 단계 중복 체크도 CONFIRMED만 체크가 맞음 (현재 구현완료)
+
+---
+### reservationConfirm (조회) 정책 
+- 지금 reservationConfirm()이 CONFIRMED만 조회중인데
+- UX상 "결제 대기 목록"도 필요하면 WAIT_PAYMENT 조회 API 별도로 만드는게 깔끔함

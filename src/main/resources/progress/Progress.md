@@ -105,3 +105,17 @@ EXPIRED
 
 ---
 
+## 예약 흐름 정리 
+```java
+reserve()
+ └ WAIT_PAYMENT 저장
+
+confirmPayment()
+ ├ 상태 WAIT_PAYMENT인지 확인
+ ├ 10분 지났는지 확인
+ ├ CONFIRMED랑 충돌 확인
+ └ CONFIRMED로 변경
+
+scheduler()
+ └ WAIT_PAYMENT 중 10분 지난 것 EXPIRED
+```

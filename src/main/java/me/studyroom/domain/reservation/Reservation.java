@@ -99,6 +99,9 @@ public class Reservation {
 		if (status != ReservationStatus.WAIT_PAYMENT) {
 			throw new ReservationException(ExceptionCode.INVALID_STATUS);
 		}
+		// confirm 시에도 만료면 PAYMENT_TIMEOUT해야 함
+		// confirmPayment 호출 타이밍이 애매하면 스케줄러 아직 안돌았는데도 이미 10분이 지났을 수도 있음
+		// 그래서 confirm 에서 체크해야함
 		if (isPaymentExpired(clock)) {
 			throw new ReservationException(ExceptionCode.PAYMENT_TIMEOUT);
 		}

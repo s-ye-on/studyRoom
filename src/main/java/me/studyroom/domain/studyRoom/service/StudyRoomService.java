@@ -28,5 +28,6 @@ public class StudyRoomService {
 	// update할 때 모든 부분을 업데이트 안할수도 있음 예를 들어 이용 가능 여부만 업데이트하거나, 설명만 업데이트할 수 있는데
 	// dto에서 @NotBlank로 막아버리면 입력을 똑같은 것도 받아야하므로 사용자 경험이 저하될 수 있을거라 생각함
 	// 그렇다면 updateDescription, updateAvailable로 나누어야하나 고민
-	public void update() {}
+	public void update() {
+	}
 }
